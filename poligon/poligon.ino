@@ -11,6 +11,11 @@
 #define GREEN_BUTTON      12
 #define RESET_BUTTON_CH   13   // канал кнопки сброса
 
+#define BLINK_TIME  3000  // время работы мигалки
+
+bool firstMineActive = true;    // флаги активности мин - не дезактивированы ли они
+bool secondMineActive = true;
+bool thirdMineActive = true;
 
 void relaySetup()   // инициализация реле
 {
@@ -30,11 +35,19 @@ void buttonsSetup()   // инициализация кнопок, включая
   pinMode(RESET_BUTTON_CH, INPUT);  
 }
 
-bool isMinesActivated() // активированы ли мины (хотя бы одна)
+bool isFirstMineActivated() // активирована ли первая мина 
 {
-  return ((digitalRead(FIRST_MINE_CH) == HIGH) ||  
-          (digitalRead(SECOND_MINE_CH) == HIGH) ||
-          (digitalRead(THIRD_MINE_CH) == HIGH));  
+  return digitalRead(FIRST_MINE_CH) == HIGH;
+}
+
+bool isSecondMineActivated() // активирована ли вторая мина 
+{
+  return digitalRead(SECOND_MINE_CH) == HIGH;
+}
+
+bool isThirdMineActivated() // активирована ли третья мина 
+{
+  return digitalRead(THIRD_MINE_CH) == HIGH;
 }
 
 bool isResetPressed() // нажата ли кнопка reset
@@ -92,10 +105,11 @@ void blinkDeactivate()
 
 void reset()    // перезапуск системы
 {
-  digitalWrite(LED_RED_CH, LOW);
-  digitalWrite(LED_BLUE_CH, LOW);
-  digitalWrite(LED_GREEN_CH, LOW);
+  glowBlue();
   digitalWrite(BLINK_CH, LOW);
+  firstMineActive = true;    
+  secondMineActive = true;
+  thirdMineActive = true;
 }
 
 void setup() 
@@ -108,27 +122,66 @@ void setup()
 
 void loop() 
 {
-  if(isRedPressed())
+  static bool blinkActivator = false; // флаг активирующий мигалку
+  static unsigned long timer = 0; 
+  
+  if(isRedPressed())  //  если нажата красная кнопка
   {
-    Serial.println("red");
     glowRed();
     delay(100);    
   }
-  if(isGreenPressed())
+  
+  if(isGreenPressed())  // если нажата зеленая кнопка
   {
-    Serial.println("green");
     glowGreen();
     delay(100);  
   }
-  if(isMinesActivated())
+  
+  if(isResetPressed())  // нажата кнопка сброса
   {
-    Serial.println("mines");
-    blinkActivate();
-  }
-  if(isResetPressed())
-  {
-    Serial.println("reset");
     reset();
+    delay(300);  // просто моргаем разными цветами
+    glowRed();
+    delay(300);
+    glowGreen();
+    delay(300);
+    glowWhite();
+    delay(300);
+    glowBlue();
+    delay(100);
   }  
+  
+  if(isFirstMineActivated() && firstMineActive)   // если нажата первая мина и она активна
+  {
+    blinkActivator = true;  // ставим флаг, что нужно включить мигалку
+    firstMineActive = false;  // деактивируем мину
+    timer = millis();   
+  }
+  
+  if(isSecondMineActivated() && secondMineActive) // если нажата вторая мина и она активна
+  {
+    blinkActivator = true;  // ставим флаг, что нужно включить мигалку
+    secondMineActive = false; // деактивируем мину
+    timer = millis();     
+  }
+  
+  if(isThirdMineActivated() && thirdMineActive) // если нажата третья мина и она активна
+  {
+    blinkActivator = true;  // ставим флаг, что нужно включить мигалку
+    thirdMineActive = false;  // деактивируем мину
+    timer = millis();   
+  }
+  
+  if(blinkActivator && ((millis() - timer) < BLINK_TIME))
+  {
+    blinkActivate();
+    delay(100);
+  }
+  else
+  {
+    blinkDeactivate();
+    blinkActivator = false;
+    delay(100);
+  }
   delay(10);
 }
