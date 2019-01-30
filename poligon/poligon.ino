@@ -140,6 +140,7 @@ void loop()
   if(isResetPressed())  // нажата кнопка сброса
   {
     reset();
+    blinkActivator = false;
     delay(300);  // просто моргаем разными цветами
     glowRed();
     delay(300);
