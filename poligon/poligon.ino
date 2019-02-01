@@ -1,8 +1,8 @@
 // определение каналов реле
-#define BLINK_CH      5 // кана реле для мигалки
-#define LED_RED_CH    2 // канал для светодиодной ленты - красного цвет
-#define LED_BLUE_CH   3 // канал для светодиодной ленты - голубой цвет
-#define LED_GREEN_CH  4 // канал для светодиодной летны - зеленый цвет
+#define BLINK_CH      4 // кана реле для мигалки
+#define LED_RED_CH    5 // канал для светодиодной ленты - красного цвет
+#define LED_BLUE_CH   2 // канал для светодиодной ленты - голубой цвет
+#define LED_GREEN_CH  3 // канал для светодиодной летны - зеленый цвет
 
 #define FIRST_MINE_CH     8   // каналы мин
 #define SECOND_MINE_CH    9
@@ -112,6 +112,13 @@ void reset()    // перезапуск системы
   thirdMineActive = true;
 }
 
+void lowAll()
+{
+  digitalWrite(LED_RED_CH, LOW);
+  digitalWrite(LED_BLUE_CH, LOW);
+  digitalWrite(LED_GREEN_CH, LOW);
+}
+
 void setup() 
 {
   relaySetup();
@@ -139,14 +146,14 @@ void loop()
   
   if(isResetPressed())  // нажата кнопка сброса
   {
-    reset();
+    reset();   // просто моргаем синим цветам
+    delay(300); 
+    lowAll();
     blinkActivator = false;
-    delay(300);  // просто моргаем разными цветами
-    glowRed();
+    delay(300); 
+    glowBlue();
     delay(300);
-    glowGreen();
-    delay(300);
-    glowWhite();
+    digitalWrite(LED_BLUE_CH, LOW);
     delay(300);
     glowBlue();
     delay(100);
